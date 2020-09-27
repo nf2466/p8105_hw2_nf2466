@@ -4,6 +4,11 @@ author: Nancy Fang (nf2466)
 output: github_document
 ---
 
+```{r setup}
+library(tidyverse)
+library(readxl)
+```
+
 
 ## Problem 1
 
