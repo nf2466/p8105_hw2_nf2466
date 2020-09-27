@@ -1,0 +1,13 @@
+---
+title: "Homework 2"
+author: Nancy Fang (nf2466)
+output: github_document
+---
+
+
+## Problem 1
+
+```{r}
+
+```
+
