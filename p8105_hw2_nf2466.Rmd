@@ -7,6 +7,7 @@ output: github_document
 ```{r setup}
 library(tidyverse)
 library(readxl)
+library(readr)
 ```
 
 
@@ -74,4 +75,32 @@ This dataset contains information from the Mr. Trash Wheel trash collector in Ba
 
 * The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.
+
+
+Problem 2
+---
+Read in Subway Entrance and Exit Data
+```{r}
+subway_df=
+  read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  janitor::clean_names()%>%
+  select(line:entry,vending,ada)%>%
+  mutate(entry = recode(entry, YES = "TRUE", NO = "FALSE"))%>%
+  mutate(entry = as.logical(entry))
+  
+```
+This dataset contains information about subway stations in NYC. It contains information on subway line, station, latitude/longitude, which routes it serves, entrance type, whether there are vending machines, and its ADA compliance. To read this dataset, I imported a csv file, cleaned the names, selected the columns I wanted to keep, and changed the entry variable from a character variable to a logical variable. There are a total of `r nrow(subway_df)` rows and `r ncol(subway_df)` columns. The dataset appears to overall be tidy except for the route variables .
+
+There are `r distinct(subway_df,line,station_name) %>% count()` distinct stations in this dataset. There are `r filter(subway_df, ada == TRUE) %>% distinct(line, station_name) %>% count()` distinct stations that are ADA compliant. The proportion of station entrances/exits with no vending that allow entry is `r filter(subway_df, vending == 'NO' & entry==TRUE) %>%  count() / filter(subway_df, vending == 'NO') %>% count()`.
+
+```{r}
+subway_tidy =
+  subway_df %>%
+  mutate_at(vars(route1:route11), as.character) %>%
+  pivot_longer(route1:route11, names_to = "route_name", names_prefix = "route", values_to = "route_number") %>%
+  drop_na(route_number)
+
+```
+There are `r filter(subway_tidy,route_number=='A')%>%distinct(line,station_name)%>%count()` distinct stations that serve the A train. There are `r filter(subway_tidy,route_number=='A') %>% filter(ada==TRUE)%>%distinct(line,station_name)%>%count()` stations on the A line that are ADA compliant.
+
 
