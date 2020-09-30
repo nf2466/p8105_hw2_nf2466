@@ -77,8 +77,8 @@ This dataset contains information from the Mr. Trash Wheel trash collector in Ba
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.
 
 
-Problem 2
----
+## Problem 2
+
 Read in Subway Entrance and Exit Data
 ```{r}
 subway_df=
@@ -102,5 +102,64 @@ subway_tidy =
 
 ```
 There are `r filter(subway_tidy,route_number=='A')%>%distinct(line,station_name)%>%count()` distinct stations that serve the A train. There are `r filter(subway_tidy,route_number=='A') %>% filter(ada==TRUE)%>%distinct(line,station_name)%>%count()` stations on the A line that are ADA compliant.
+
+
+Problem 3
+---
+Read pols-month data
+```{r pols csv}
+pols_df=
+  read_csv("./data/fivethirtyeight_datasets/pols-month.csv")%>%
+  janitor::clean_names() %>%
+  separate(mon, into = c('year','month','day')) %>%
+  mutate(month = month.abb[as.factor(month)]) %>%
+  mutate_at(vars(year), as.numeric)%>%
+  mutate(president = case_when (
+    prez_gop == 1 ~ "gop",
+    prez_dem == 1 ~ "dem")) %>%
+  subset(select = -c(prez_gop, prez_dem, day)) %>%
+  relocate(president, .after=month)
+```
+Read snp data
+```{r snp csv}
+snp_df=
+  read_csv("./data/fivethirtyeight_datasets/snp.csv")%>%
+  janitor::clean_names() %>%
+  separate(date, into = c('month','day','year')) %>%
+  mutate(month = month.abb[as.factor(month)]) %>%
+  mutate_at(vars(year), as.numeric)%>%
+  subset(select = -c(day)) %>%
+  relocate(year, .before=month)
+```
+Read unemployment data
+```{r}
+unemployment_df=
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv")%>%
+  janitor::clean_names()%>%
+  pivot_longer(jan:dec, names_to = "month", values_to = "unemployment") %>%
+  mutate(month = month.abb[as.factor(month)])
+
+```
+Merge the datasets
+```{r}
+pols_snp = 
+  left_join(pols_df, snp_df, by=c("year", "month"))
+complete_df =
+  left_join(pols_snp,unemployment_df, by=c("year", "month"))
+```
+The original datasets from the FiveThirtyEight data folders contain information about national politicians and their associated parties (democrat or republican) between 1947 and 2015, the closing values in the S&P stock market index between 1950 and 2015, and the unemployment rates by month between 1948 and 2015. The merged dataset contains information on the party the president was given a certain year and month, the number of representatives in each party in the senate and house, as well as the closing values in the S&P stock market index and unemployment percentage by month and year. 
+
+Specific values for each dataset:
+
+Pols-month: `r nrow(pols_df)` rows, `r ncol(pols_df)` variables, between `r min(pols_df$year)` and `r max(pols_df$year)`.
+
+SNP: `r nrow(snp_df)` rows, `r ncol(snp_df)` variables, between `r min(snp_df$year)` and `r max(snp_df$year)`.
+
+Unemployment: `r nrow(unemployment_df)` rows, `r ncol(unemployment_df)` variables, between `r min(unemployment_df$year)` and `r max(unemployment_df$year)`
+
+Complete data: `r nrow(complete_df)` rows, `r ncol(complete_df)` variables, between `r min(complete_df$year)` and `r max(complete_df$year)`.
+
+
+
 
 
